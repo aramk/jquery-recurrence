@@ -8,10 +8,10 @@
             label: 'Weekly',
             init: function(mode, plugin) {
               var $em = $('<div class="' + mode.name + '"></div>');
-              var $weeksBox = $('<div></div>');
+              var $weeksBox = $('<div class="' + plugin.settings.weekInputClass + '"></div>');
               $em.append($weeksBox);
               $weeksBox.append('<span>Every </span>');
-              var $weeks = mode.$weeks = $('<input type="text" />');
+              var $weeks = mode.$weeks = $('<input type="text" />').val(1);
               $weeksBox.append($weeks);
               $weeksBox.append('<span> weeks(s) on:</span>');
               var $days = $('<div class="days"></div>');
@@ -52,7 +52,8 @@
           saturday: {label: 'S'},
           sunday: {label: 'S'}
         },
-        buttonActiveClass: 'active'
+        buttonActiveClass: 'active',
+        weekInputClass: 'week'
       };
 
   function Plugin(element, options) {
@@ -113,7 +114,9 @@
       if (!this.currentMode) {
         return {};
       }
-      return this.currentMode.toObject();
+      var modes = this.settings.modes,
+          mode = modes[this.currentMode];
+      return mode.toObject.call(this, mode, this);
     }
 
   };

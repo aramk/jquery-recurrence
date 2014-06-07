@@ -23,6 +23,7 @@
   ],
   "dependencies": {
     "jquery": "~2.1.1",
-    "rrule": "~2.1.0"
+    "rrule": "~2.1.0",
+    "less": "~1.7.0"
   }
 }
