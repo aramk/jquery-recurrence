@@ -39,7 +39,7 @@
               });
               Object.keys(days).forEach(function(name) {
                 var day = days[name];
-                var $day = $('<button class="toggle">' + day.label + '</button>');
+                var $day = $('<button type="button" class="toggle">' + day.label + '</button>');
                 $day.click(function() {
                   $day.toggleClass(plugin.settings.buttonActiveClass);
                   onChange();
@@ -105,13 +105,11 @@
 
     init: function() {
       var $em = $(this.element).addClass(pluginName);
-      var $freqBox = $('<div></div>');
-      $em.append($freqBox);
-      var $freqSelect = $('<select></select>');
+      var $freqSelect = $('<select class="mode"></select>');
+      $em.append($freqSelect);
 
-      $freqBox.append($freqSelect);
-
-      var $body = $('<div></div>');
+      var $body = $('<div class="modes"></div>');
+      $em.append($body);
       var modes = this.settings.modes;
       Object.keys(modes).forEach(function(name) {
         var mode = modes[name];
@@ -133,9 +131,6 @@
         this.currentMode = val;
       }.bind(this));
       $freqSelect.trigger('change');
-
-      $em.append($freqBox);
-      $em.append($body);
     },
 
     hideAll: function() {

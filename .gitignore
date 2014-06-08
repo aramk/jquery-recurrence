@@ -60,3 +60,4 @@ bin/
 #######
 .settings
 .idea
+.build*

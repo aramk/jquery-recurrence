@@ -3,6 +3,7 @@ Package.describe({
 });
 
 Package.on_use(function (api) {
-  api.add_files('jquery.recurrence.js', 'client');
-  api.add_files('jquery.recurrence.less', 'client');
+  api.use('jquery', 'client');
+  api.use('rrule', 'client');
+  api.add_files(['jquery.recurrence.js', 'jquery.recurrence.less'], 'client');
 });
