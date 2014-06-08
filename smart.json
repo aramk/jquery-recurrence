@@ -3,6 +3,6 @@
   "description": "A jQuery widget for specifying event recurrences in scheduling systems.",
   "author": "Aram Kocharyan <akarmenia@gmail.com>",
   "version": "0.0.0",
-  "git": "https://github.com/aramk/jquery.recurrence",
+  "git": "https://github.com/aramk/jquery-recurrence",
   "packages" : {}
 }
