@@ -4,9 +4,12 @@
     var $container = $('.container').recurrence({
     });
     var recurrence = $container.data('plugin_recurrence');
-    $('button.submit').click(function () {
+    $container.on('change', function () {
       var obj = recurrence.toObject();
       console.log('obj', obj);
+      var rule = recurrence.toRule();
+      var text = rule.toText().replace(/^\w/, function(m) {return m.toUpperCase()});
+      $('.text').text(text);
     });
   });
 

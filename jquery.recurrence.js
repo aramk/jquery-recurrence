@@ -14,21 +14,43 @@
               var $weeks = mode.$weeks = $('<input type="text" />').val(1);
               $weeksBox.append($weeks);
               $weeksBox.append('<span> weeks(s) on:</span>');
-              var $days = $('<div class="days"></div>');
-              var days = plugin.settings.days;
+              var $daysBox = $('<div class="days"></div>'),
+                  days = plugin.settings.days,
+                  onChange = function () {
+                    $(plugin.element).trigger('change');
+                  },
+                  lastValue = $weeks.val(),
+                  inputOnChange = function (e) {
+                    var value = $weeks.val();
+                    value = value.replace(/[^\d]/g, '');
+                    $weeks.val(value);
+                    if (lastValue !== value) {
+                      onChange();
+                    }
+                    lastValue = value;
+                    // Prevent change event from bubbling since we handle that manually in onChange.
+                    e && e.stopPropagation();
+                  };
+              var changeHandle;
+              $weeks.on('change', inputOnChange);
+              $weeks.on('keyup', function () {
+                clearInterval(changeHandle);
+                changeHandle = setTimeout(inputOnChange, plugin.settings.changeDelay);
+              });
               Object.keys(days).forEach(function(name) {
                 var day = days[name];
                 var $day = $('<button class="toggle">' + day.label + '</button>');
                 $day.click(function() {
                   $day.toggleClass(plugin.settings.buttonActiveClass);
+                  onChange();
                 });
                 $em.append($day);
                 day.$em = $day;
               });
-              $em.append($days);
+              $em.append($daysBox);
               return $em;
             },
-            toObject: function(mode, plugin) {
+            getSelectedDays: function (mode, plugin) {
               var selectedDays = [],
                   days = plugin.settings.days;
               Object.keys(days).forEach(function(name) {
@@ -36,24 +58,38 @@
                   selectedDays.push(name);
                 }
               });
+              return selectedDays;
+            },
+            toObject: function(mode, plugin) {
               return {
-                weeks: mode.$weeks.val(),
-                days: selectedDays
+                weeks: parseInt(mode.$weeks.val()),
+                days: mode.getSelectedDays(mode, plugin)
               };
+            },
+            toRule: function (mode, plugin) {
+              var obj = mode.toObject(mode, plugin);
+              return new RRule({
+                freq: RRule.WEEKLY,
+                interval: obj.weeks,
+                byweekday: obj.days.map(function (day) {
+                  return plugin.settings.days[day].rule;
+                })
+              });
             }
           }
         },
         days: {
-          monday: {label: 'M'},
-          tuesday: {label: 'T'},
-          wednesday: {label: 'W'},
-          thursday: {label: 'T'},
-          friday: {label: 'F'},
-          saturday: {label: 'S'},
-          sunday: {label: 'S'}
+          monday: {label: 'M', rule: RRule.MO},
+          tuesday: {label: 'T', rule: RRule.TU},
+          wednesday: {label: 'W', rule: RRule.WE},
+          thursday: {label: 'T', rule: RRule.TH},
+          friday: {label: 'F', rule: RRule.FR},
+          saturday: {label: 'S', rule: RRule.SA},
+          sunday: {label: 'S', rule: RRule.SU}
         },
         buttonActiveClass: 'active',
-        weekInputClass: 'week'
+        weekInputClass: 'week',
+        changeDelay: 200
       };
 
   function Plugin(element, options) {
@@ -110,13 +146,21 @@
       });
     },
 
-    toObject: function() {
+    _delegateToMode: function (method) {
       if (!this.currentMode) {
         return {};
       }
       var modes = this.settings.modes,
           mode = modes[this.currentMode];
-      return mode.toObject.call(this, mode, this);
+      return mode[method].call(this, mode, this);
+    },
+
+    toObject: function() {
+      return this._delegateToMode('toObject');
+    },
+
+    toRule: function () {
+      return this._delegateToMode('toRule');
     }
 
   };
