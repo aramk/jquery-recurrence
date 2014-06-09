@@ -10,6 +10,7 @@
       var rule = recurrence.toRule();
       var text = rule.toText().replace(/^\w/, function(m) {return m.toUpperCase()});
       $('.text').text(text);
+      recurrence.fromRule(rule.toString());
     });
   });
 

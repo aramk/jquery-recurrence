@@ -15,12 +15,11 @@
               $weeksBox.append($weeks);
               $weeksBox.append('<span> weeks(s) on:</span>');
               var $daysBox = $('<div class="days"></div>'),
-                  days = plugin.settings.days,
-                  onChange = function () {
+                  onChange = function() {
                     $(plugin.element).trigger('change');
                   },
                   lastValue = $weeks.val(),
-                  inputOnChange = function (e) {
+                  inputOnChange = function(e) {
                     var value = $weeks.val();
                     value = value.replace(/[^\d]/g, '');
                     $weeks.val(value);
@@ -33,12 +32,11 @@
                   };
               var changeHandle;
               $weeks.on('change', inputOnChange);
-              $weeks.on('keyup', function () {
+              $weeks.on('keyup', function() {
                 clearInterval(changeHandle);
                 changeHandle = setTimeout(inputOnChange, plugin.settings.changeDelay);
               });
-              Object.keys(days).forEach(function(name) {
-                var day = days[name];
+              plugin.settings._eachDay(function(name, day) {
                 var $day = $('<button type="button" class="toggle">' + day.label + '</button>');
                 $day.click(function() {
                   $day.toggleClass(plugin.settings.buttonActiveClass);
@@ -50,15 +48,20 @@
               $em.append($daysBox);
               return $em;
             },
-            getSelectedDays: function (mode, plugin) {
-              var selectedDays = [],
-                  days = plugin.settings.days;
-              Object.keys(days).forEach(function(name) {
-                if (days[name].$em.hasClass(plugin.settings.buttonActiveClass)) {
+            getSelectedDays: function(mode, plugin) {
+              var selectedDays = [];
+              plugin.settings._eachDay(function(name, day) {
+                if (day.$em.hasClass(plugin.settings.buttonActiveClass)) {
                   selectedDays.push(name);
                 }
               });
               return selectedDays;
+            },
+            setSelectedDays: function(mode, plugin, selectedDays) {
+              plugin.settings._eachDay(function(name, day) {
+                day.$em.toggleClass(plugin.settings.buttonActiveClass,
+                        selectedDays.indexOf(name) >= 0);
+              });
             },
             toObject: function(mode, plugin) {
               return {
@@ -66,15 +69,26 @@
                 days: mode.getSelectedDays(mode, plugin)
               };
             },
-            toRule: function (mode, plugin) {
+            toRule: function(mode, plugin) {
               var obj = mode.toObject(mode, plugin);
               return new RRule({
                 freq: RRule.WEEKLY,
                 interval: obj.weeks,
-                byweekday: obj.days.map(function (day) {
+                byweekday: obj.days.map(function(day) {
                   return plugin.settings.days[day].rule;
                 })
               });
+            },
+            fromRule: function(mode, plugin, rule) {
+              var options = rule.options;
+              mode.$weeks.val(options.interval);
+              var selectedDays = [];
+              plugin.settings._eachDay(function(name, day) {
+                if (options.byweekday.indexOf(day.rule.weekday) >= 0) {
+                  selectedDays.push(name);
+                }
+              });
+              mode.setSelectedDays(mode, plugin, selectedDays);
             }
           }
         },
@@ -86,6 +100,11 @@
           friday: {label: 'F', rule: RRule.FR},
           saturday: {label: 'S', rule: RRule.SA},
           sunday: {label: 'S', rule: RRule.SU}
+        },
+        _eachDay: function(callback, scope) {
+          return Object.keys(this.days).forEach(function(name) {
+            callback.call(scope, name, this.days[name]);
+          }, this);
         },
         buttonActiveClass: 'active',
         weekInputClass: 'week',
@@ -141,21 +160,34 @@
       });
     },
 
-    _delegateToMode: function (method) {
+    _delegateToMode: function(method) {
       if (!this.currentMode) {
         return {};
       }
       var modes = this.settings.modes,
           mode = modes[this.currentMode];
-      return mode[method].call(this, mode, this);
+      var args = [mode, this];
+      // Clone remaining args and pass to the method.
+      var _args = Array.prototype.slice.call(arguments, 1);
+      args = args.concat(_args);
+      return mode[method].apply(this, args);
     },
 
     toObject: function() {
       return this._delegateToMode('toObject');
     },
 
-    toRule: function () {
+    toRule: function() {
       return this._delegateToMode('toRule');
+    },
+
+    fromRule: function(arg) {
+      var rule = typeof arg === 'string' ? new RRule(RRule.parseString(arg)) : rule;
+      if (!(rule instanceof RRule)) {
+        throw new Error('Invalid argument - must be a string or RRule object: ' + arg);
+      }
+      // TODO(aramk) Select the current mode based on the "freq" option of the rule.
+      this._delegateToMode('fromRule', rule);
     }
 
   };
