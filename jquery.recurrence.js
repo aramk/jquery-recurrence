@@ -182,7 +182,7 @@
     },
 
     fromRule: function(arg) {
-      var rule = typeof arg === 'string' ? new RRule(RRule.parseString(arg)) : rule;
+      var rule = typeof arg === 'string' ? new RRule(RRule.parseString(arg)) : arg;
       if (!(rule instanceof RRule)) {
         throw new Error('Invalid argument - must be a string or RRule object: ' + arg);
       }
