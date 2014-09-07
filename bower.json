@@ -25,5 +25,8 @@
     "jquery": "~2.1.1",
     "rrule": "~2.1.0",
     "less": "~1.7.0"
+  },
+  "devDependencies": {
+    "underscore": "~1.7.0"
   }
 }

@@ -39,7 +39,17 @@
               plugin.settings._eachDay(function(name, day) {
                 var $day = $('<button type="button" class="toggle">' + day.label + '</button>');
                 $day.click(function() {
-                  $day.toggleClass(plugin.settings.buttonActiveClass);
+                  var selectedDays = mode.getSelectedDays(mode, plugin);
+                  var newDays = _.without(selectedDays, name);
+                  if (newDays.length == selectedDays.length) {
+                    newDays.push(name);
+                  }
+                  // If new selection exceeds limit, remove first selection.
+                  var maxDays = plugin.settings.maxDays;
+                  if (newDays.length > maxDays) {
+                    newDays.shift();
+                  }
+                  mode.setSelectedDays(mode, plugin, newDays);
                   onChange();
                 });
                 $em.append($day);
@@ -58,6 +68,9 @@
               return selectedDays;
             },
             setSelectedDays: function(mode, plugin, selectedDays) {
+              if (!mode.isValidDays(selectedDays, plugin)) {
+                throw new Error('Invalid days set: [' + selectedDays + ']');
+              }
               plugin.settings._eachDay(function(name, day) {
                 day.$em.toggleClass(plugin.settings.buttonActiveClass,
                         selectedDays.indexOf(name) >= 0);
@@ -89,6 +102,12 @@
                 }
               });
               mode.setSelectedDays(mode, plugin, selectedDays);
+            },
+            isValidDays: function(days, plugin) {
+              var minDays = plugin.settings.minDays;
+              var maxDays = plugin.settings.maxDays;
+              return !(typeof minDays === 'number' && days.length < minDays ||
+                  typeof maxDays === 'number' && days.length > maxDays);
             }
           }
         },
@@ -108,7 +127,8 @@
         },
         buttonActiveClass: 'active',
         weekInputClass: 'week',
-        changeDelay: 200
+        changeDelay: 200,
+        minDays: 1
       };
 
   function Plugin(element, options) {
@@ -194,7 +214,7 @@
       this._triggerChange();
     },
 
-    _triggerChange: function () {
+    _triggerChange: function() {
       $(this.element).trigger('change');
     }
 

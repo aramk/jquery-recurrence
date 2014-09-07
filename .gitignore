@@ -2,6 +2,7 @@ node_modules
 bower_components
 test
 tests
+.build*
 
 # Compiled source #
 ###################
@@ -60,4 +61,3 @@ bin/
 #######
 .settings
 .idea
-.build*

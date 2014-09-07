@@ -5,13 +5,11 @@
       '#recurrence-1': {
       },
       '#recurrence-2': {
-        limitSingleDay: true
+        maxDays: 1
       }
     };
     Object.keys(constructArgs).forEach(function (selector) {
-      var $recurrence = $(selector).recurrence({
-        limitSingleDay: true
-      });
+      var $recurrence = $(selector).recurrence(constructArgs[selector]);
       var recurrence = $recurrence.data('plugin_recurrence');
       $recurrence.on('change', function () {
         var obj = recurrence.toObject();
