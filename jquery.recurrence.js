@@ -16,7 +16,7 @@
               $weeksBox.append('<span> weeks(s) on:</span>');
               var $daysBox = $('<div class="days"></div>'),
                   onChange = function() {
-                    $(plugin.element).trigger('change');
+                    plugin._triggerChange();
                   },
                   lastValue = $weeks.val(),
                   inputOnChange = function(e) {
@@ -113,7 +113,7 @@
 
   function Plugin(element, options) {
     this.element = element;
-    this.settings = $.extend({}, defaults, options);
+    this.settings = $.extend(true, {}, defaults, options);
     this._defaults = defaults;
     this._name = pluginName;
     this.currentMode = null;
@@ -150,6 +150,9 @@
         this.currentMode = val;
       }.bind(this));
       $freqSelect.trigger('change');
+      // Ensure initial state is consistent.
+      var rule = this.toRule();
+      this.fromRule(rule.toString());
     },
 
     hideAll: function() {
@@ -188,6 +191,11 @@
       }
       // TODO(aramk) Select the current mode based on the "freq" option of the rule.
       this._delegateToMode('fromRule', rule);
+      this._triggerChange();
+    },
+
+    _triggerChange: function () {
+      $(this.element).trigger('change');
     }
 
   };
