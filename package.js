@@ -1,7 +1,7 @@
 Package.describe({
   name: 'aramk:jquery-recurrence',
   summary: 'A jQuery widget for specifying event recurrences in scheduling systems.',
-  version: '0.1.0',
+  version: '0.1.1',
   git: 'https://github.com/aramk/jquery-recurrence',
 });
 

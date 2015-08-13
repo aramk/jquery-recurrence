@@ -1,6 +1,6 @@
 {
   "name": "jquery-recurrence",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "A jQuery widget for specifying event recurrences in scheduling systems.",
   "authors": [
     "Aram Kocharyan <akarmenia@gmail.com>"
