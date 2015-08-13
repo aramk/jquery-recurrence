@@ -1,10 +1,14 @@
 {
-  "name": "recurrence.js",
+  "name": "jquery-recurrence",
   "version": "0.1.0",
+  "description": "A jQuery widget for specifying event recurrences in scheduling systems.",
   "authors": [
     "Aram Kocharyan <akarmenia@gmail.com>"
   ],
-  "description": "A jQuery widget for specifying event recurrences in scheduling systems.",
+  "repo": {
+    "type": "git",
+    "url": "git://github.com/aramk/jquery-recurrence.git"
+  },
   "main": "jquery.recurrence.js",
   "moduleType": [
     "globals"
@@ -23,10 +27,8 @@
   ],
   "dependencies": {
     "jquery": "~2.1.1",
+    "less": "~1.7.0",
     "rrule": "~2.1.0",
-    "less": "~1.7.0"
-  },
-  "devDependencies": {
     "underscore": "~1.7.0"
   }
 }
