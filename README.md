@@ -13,4 +13,7 @@ This plugin uses [aramk:rrule](https://github.com/aramk/rrule) to calculate the 
 	
 ## Demo
 
-See [sample.html](sample.html).
+```
+bower install
+```
+Launch [sample.html](sample.html).
