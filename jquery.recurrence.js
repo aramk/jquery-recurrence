@@ -8,28 +8,28 @@
             label: 'Weekly',
             init: function(mode, plugin) {
               var $em = $('<div class="' + mode.name + '"></div>');
-              var $weeksBox = $('<div class="' + plugin.settings.weekInputClass + '"></div>');
-              $em.append($weeksBox);
-              $weeksBox.append('<span>Every </span>');
+              var $inputs = $('<div class="' + plugin.settings.weekInputClass + '"></div>');
+              $em.append($inputs);
+              $inputs.append('<span>Every </span>');
               var $weeks = mode.$weeks = $('<input type="text" />').val(1);
-              $weeksBox.append($weeks);
-              $weeksBox.append('<span> weeks(s) on:</span>');
-              var $daysBox = $('<div class="days"></div>'),
-                  onChange = function() {
-                    plugin._triggerChange();
-                  },
-                  lastValue = $weeks.val(),
-                  inputOnChange = function(e) {
-                    var value = $weeks.val();
-                    value = value.replace(/[^\d]/g, '');
-                    $weeks.val(value);
-                    if (lastValue !== value) {
-                      onChange();
-                    }
-                    lastValue = value;
-                    // Prevent change event from bubbling since we handle that manually in onChange.
-                    e && e.stopPropagation();
-                  };
+              $inputs.append($weeks);
+              $inputs.append('<span> weeks(s) on:</span>');
+              var $daysBox = $('<div class="days"></div>');
+              var onChange = function() {
+                plugin._triggerChange();
+              };
+              var lastValue = $weeks.val();
+              var inputOnChange = function(e) {
+                var value = $weeks.val();
+                value = value.replace(/[^\d]/g, '');
+                $weeks.val(value);
+                if (lastValue !== value) {
+                  onChange();
+                }
+                lastValue = value;
+                // Prevent change event from bubbling since we handle that manually in onChange.
+                e && e.stopPropagation();
+              };
               var changeHandle;
               $weeks.on('change', inputOnChange);
               $weeks.on('keyup', function() {
@@ -103,12 +103,70 @@
               });
               mode.setSelectedDays(mode, plugin, selectedDays);
             },
+            isRule(rule) {
+              return rule.options.freq === RRule.WEEKLY;
+            },
             isValidDays: function(days, plugin) {
               var minDays = plugin.settings.minDays;
               var maxDays = plugin.settings.maxDays;
               return !(typeof minDays === 'number' && days.length < minDays ||
                   typeof maxDays === 'number' && days.length > maxDays);
             }
+          },
+
+
+          monthly: {
+            label: 'Monthly',
+            init: function(mode, plugin) {
+              var $em = $('<div class="' + mode.name + '"></div>');
+              var $inputs = $('<div class="' + plugin.settings.monthInputClass + '"></div>');
+              $em.append($inputs);
+              $inputs.append('<span>Every </span>');
+              var $months = mode.$months = $('<input type="text" />').val(1);
+              $inputs.append($months);
+              $inputs.append('<span> months(s) on:</span>');
+              var onChange = function() {
+                plugin._triggerChange();
+              };
+              var lastValue = $months.val();
+              var inputOnChange = function(e) {
+                var value = $months.val();
+                value = value.replace(/[^\d]/g, '');
+                $months.val(value);
+                if (lastValue !== value) {
+                  onChange();
+                }
+                lastValue = value;
+                // Prevent change event from bubbling since we handle that manually in onChange.
+                e && e.stopPropagation();
+              };
+              var changeHandle;
+              $months.on('change', inputOnChange);
+              $months.on('keyup', function() {
+                clearInterval(changeHandle);
+                changeHandle = setTimeout(inputOnChange, plugin.settings.changeDelay);
+              });
+              return $em;
+            },
+            toObject: function(mode, plugin) {
+              return {
+                months: parseInt(mode.$months.val()),
+              };
+            },
+            toRule: function(mode, plugin) {
+              var obj = mode.toObject(mode, plugin);
+              return new RRule({
+                freq: RRule.MONTHLY,
+                interval: obj.months,
+              });
+            },
+            fromRule: function(mode, plugin, rule) {
+              var options = rule.options;
+              mode.$months.val(options.interval);
+            },
+            isRule(rule) {
+              return rule.options.freq === RRule.MONTHLY;
+            },
           }
         },
         days: {
@@ -127,6 +185,7 @@
         },
         buttonActiveClass: 'active',
         weekInputClass: 'week',
+        monthInputClass: 'month',
         changeDelay: 200,
         minDays: 1
       };
@@ -144,7 +203,7 @@
 
     init: function() {
       var $em = $(this.element).addClass(pluginName);
-      var $freqSelect = $('<select class="mode"></select>');
+      var $freqSelect = this.$freqSelect = $('<select class="mode"></select>');
       $em.append($freqSelect);
 
       var $body = $('<div class="modes"></div>');
@@ -209,8 +268,16 @@
       if (!(rule instanceof RRule)) {
         throw new Error('Invalid argument - must be a string or RRule object: ' + arg);
       }
+      for (var modeKey in this.settings.modes) {
+        var mode = this.settings.modes[modeKey];
+        if (mode.isRule(rule)) {
+          this.currentMode = modeKey;
+          continue;
+        }
+      }
       // TODO(aramk) Select the current mode based on the "freq" option of the rule.
       this._delegateToMode('fromRule', rule);
+      this.$freqSelect.val(this.currentMode).trigger('change');
       this._triggerChange();
     },
 
