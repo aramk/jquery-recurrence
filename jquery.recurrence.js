@@ -218,6 +218,21 @@
         $body.append($mode.hide());
         mode.$em = $mode;
       }, this);
+      var $body = $(`
+        <div class="until">
+          <input name="until-enabled" type="checkbox" />
+          <label>Until</label>
+          <input name="until" type="date" />
+        </div>
+      `);
+      $em.append($body);
+      $untilEnabled = this.$untilEnabled = $('[name="until-enabled"]', $body);
+      $until = this.$until = $('[name="until"]', $body);
+      $until.val(moment().add(1, 'month').format('YYYY-MM-DD'));
+      $untilEnabled.on('change', function() {
+        $until.toggle($untilEnabled.is(':checked'));
+      });
+      $untilEnabled.trigger('change');
       $freqSelect.on('change', function() {
         var val = $freqSelect.val();
         var mode = modes[val];
@@ -260,7 +275,13 @@
     },
 
     toRule: function() {
-      return this._delegateToMode('toRule');
+      const rule = this._delegateToMode('toRule');
+      if (!this.$untilEnabled.is(':checked')) return rule;
+      
+      const {origOptions} = rule;
+      // NOTE: This is in the local time zone.
+      origOptions.until = moment(this.$until.val()).toDate();
+      return new RRule({...origOptions});
     },
 
     fromRule: function(arg) {
@@ -274,6 +295,12 @@
           this.currentMode = modeKey;
           continue;
         }
+      }
+      this.$untilEnabled
+        .prop('checked', rule.origOptions.until != null)
+        .trigger('change');
+      if (rule.origOptions.until != null) {
+        this.$until.val(moment(rule.origOptions.until).format('YYYY-MM-DD'));
       }
       // TODO(aramk) Select the current mode based on the "freq" option of the rule.
       this._delegateToMode('fromRule', rule);

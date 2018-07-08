@@ -29,6 +29,7 @@
     "jquery": "~2.1.1",
     "less": "~1.7.0",
     "rrule": "~2.1.0",
-    "underscore": "~1.7.0"
+    "underscore": "~1.7.0",
+    "moment": "~2.22.2"
   }
 }
